@@ -39,7 +39,7 @@ coverage:
     PARANOIA_INTEGRATED_TESTS: Y
     PARANOIA_INTEGRATED_SERVER: $PARANOIA_INTEGRATED_SERVER
   script:
-    - go install
+    - go mod download
     - go test $(go list ./... | grep -v vendor) -race -coverprofile=coverage.out
     - go get github.com/boumenot/gocover-cobertura
     - go run github.com/boumenot/gocover-cobertura < coverage.out > coverage.xml
