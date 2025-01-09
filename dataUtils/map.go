@@ -1,5 +1,6 @@
 package dataUtils
 
+// MapKeys returns a slice of keys from the provided map.
 func MapKeys[K comparable, V any](data map[K]V) []K {
 	keys := make([]K, len(data))
 
@@ -12,6 +13,7 @@ func MapKeys[K comparable, V any](data map[K]V) []K {
 	return keys
 }
 
+// MapValues returns a slice of values from the provided map.
 func MapValues[K comparable, V any](data map[K]V) []V {
 	values := make([]V, len(data))
 
@@ -24,11 +26,13 @@ func MapValues[K comparable, V any](data map[K]V) []V {
 	return values
 }
 
+// MapContains checks if the provided map contains the specified key.
 func MapContains[K comparable, V any](data map[K]V, key K) bool {
 	_, ok := data[key]
 	return ok
 }
 
+// MapValueContains checks if the provided map contains the specified value.
 func MapValueContains[K, V comparable](data map[K]V, value V) bool {
 	for _, v := range data {
 		if v == value {
@@ -39,6 +43,7 @@ func MapValueContains[K, V comparable](data map[K]V, value V) bool {
 	return false
 }
 
+// MapOrderedIterator returns a function that iterates over the provided map in a sorted order.
 func MapOrderedIterator[K Constraints, V any](data map[K]V) func(yield func(K, V) bool) {
 	keys := MapKeys(data)
 	SliceOrderAsk(&keys)
