@@ -7,6 +7,67 @@ import (
 	"testing"
 )
 
+func TestPipeline(t *testing.T) {
+	// Тестовые данные
+	tests := []struct {
+		name     string
+		input    []int
+		fn       func(int) int
+		expected []int
+	}{
+		{
+			name:  "Square numbers",
+			input: []int{1, 2, 3, 4},
+			fn: func(x int) int {
+				return x * x
+			},
+			expected: []int{1, 4, 9, 16},
+		},
+		{
+			name:  "Multiply by 2",
+			input: []int{5, 10, 15},
+			fn: func(x int) int {
+				return x * 2
+			},
+			expected: []int{10, 20, 30},
+		},
+		{
+			name:  "Empty input",
+			input: []int{},
+			fn: func(x int) int {
+				return x + 1
+			},
+			expected: []int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Создаем входной канал
+			in := make(chan int, len(tt.input))
+			for _, val := range tt.input {
+				in <- val
+			}
+			close(in)
+
+			// Применяем Pipeline
+			pipeline := Pipeline(tt.fn)
+			outChan := pipeline(in)
+
+			// Считываем данные из выходного канала
+			result := make([]int, 0)
+			for val := range outChan {
+				result = append(result, val)
+			}
+
+			// Проверяем результат
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("Pipeline() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestFanIn(t *testing.T) {
 	tests := []struct {
 		name     string
