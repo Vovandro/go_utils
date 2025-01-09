@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Pipeline convert channel for function
+// Pipeline converts a channel of input values to a channel of output values by applying a function to each input value.
 func Pipeline[IN, OUT any](fn func(IN) OUT) func(<-chan IN) <-chan OUT {
 	return func(in <-chan IN) <-chan OUT {
 		out := make(chan OUT)
@@ -21,6 +21,7 @@ func Pipeline[IN, OUT any](fn func(IN) OUT) func(<-chan IN) <-chan OUT {
 	}
 }
 
+// Split splits a channel of input values into two channels of output values by applying a function to each input value.
 func Split[IN, OUT1, OUT2 any](in <-chan IN, fn func(IN) (OUT1, OUT2)) (<-chan OUT1, <-chan OUT2) {
 	out1 := make(chan OUT1)
 	out2 := make(chan OUT2)
@@ -38,7 +39,7 @@ func Split[IN, OUT1, OUT2 any](in <-chan IN, fn func(IN) (OUT1, OUT2)) (<-chan O
 	return out1, out2
 }
 
-// FanIn split channels
+// FanIn merges multiple channels of input values into a single channel of output values.
 func FanIn[T any](streams ...<-chan T) <-chan T {
 	out := make(chan T)
 	var wg sync.WaitGroup
@@ -61,7 +62,7 @@ func FanIn[T any](streams ...<-chan T) <-chan T {
 	return out
 }
 
-// FanOut split data in channel round-robin
+// FanOut splits a channel of input values into multiple channels of output values in a round-robin fashion.
 func FanOut[T any](ch chan T, size int, ordered bool) []<-chan T {
 	out := make([]chan T, size)
 	for i := 0; i < size; i++ {
@@ -112,7 +113,7 @@ func FanOut[T any](ch chan T, size int, ordered bool) []<-chan T {
 	return result
 }
 
-// Batch batch data of channel
+// Batch groups input values from a channel into batches of a specified size.
 func Batch[T any](ch <-chan T, size int) <-chan []T {
 	out := make(chan []T)
 
@@ -137,7 +138,7 @@ func Batch[T any](ch <-chan T, size int) <-chan []T {
 	return out
 }
 
-// Parallel Worker pool
+// Parallel applies a function to each input value from a channel using a worker pool of a specified size.
 func Parallel[IN, OUT any](stream <-chan IN, fn func(IN) OUT, count int) <-chan OUT {
 	out := make(chan OUT)
 	var wg sync.WaitGroup
