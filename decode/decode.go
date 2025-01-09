@@ -145,6 +145,10 @@ func copyValues(source reflect.Value, destination reflect.Value, tag string, fla
 }
 
 func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.Value, error) {
+	if source.Kind() == reflect.Interface {
+		source = source.Elem()
+	}
+
 	switch targetType.Kind() {
 	case reflect.Interface:
 		return source, nil

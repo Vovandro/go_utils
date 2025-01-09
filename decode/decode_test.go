@@ -325,3 +325,45 @@ func TestDecodeMapMap(t *testing.T) {
 		}
 	})
 }
+
+func TestDecodeMapMapTypes(t *testing.T) {
+	testIn := map[string]interface{}{
+		"1": "1",
+		"2": 2.1,
+		"3": true,
+	}
+
+	t.Run("test map to map convert to int", func(t *testing.T) {
+		testOut := map[string]int64{}
+		want := map[string]int64{
+			"1": 1,
+			"2": 2,
+			"3": 1,
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		if reflect.DeepEqual(testOut, want) {
+			t.Errorf("Decode() = %v, want %v", testOut, want)
+		}
+	})
+
+	t.Run("test map to map convert to float", func(t *testing.T) {
+		testOut := map[string]float64{}
+		want := map[string]float64{
+			"1": 1.0,
+			"2": 2.1,
+			"3": 1.0,
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		if reflect.DeepEqual(testOut, want) {
+			t.Errorf("Decode() = %v, want %v", testOut, want)
+		}
+	})
+}
