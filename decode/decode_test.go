@@ -257,10 +257,33 @@ func TestDecodeMapStruct(t *testing.T) {
 		}
 	})
 
-	t.Run("test map to struct strong type deep copy", func(t *testing.T) {
+	t.Run("test full map to non struct strong type", func(t *testing.T) {
+		testOut := testStruct{}
+		testIn := map[string]interface{}{
+			"name": 100,
+			"age":  "30",
+			"nested": map[string]interface{}{
+				"field":  "value",
+				"custom": &[]int{1, 2, 3},
+			},
+			"noCopy": "value",
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		if testOut.Age != 30 || testOut.Name != "100" ||
+			testOut.Nested.Custom == testIn["nested"].(map[string]interface{})["custom"] ||
+			testOut.Nested.Field != testIn["nested"].(map[string]interface{})["field"] {
+			t.Errorf("Decode() = %v, want %v", testOut, testIn)
+		}
+	})
+
+	t.Run("test map to struct deep copy", func(t *testing.T) {
 		testOut := testStruct{}
 
-		if err := Decode(testIn, &testOut, "copy", DecoderStrongType); err != nil {
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
 			t.Errorf("Decode() error = %v", err)
 			return
 		}

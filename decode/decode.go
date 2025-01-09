@@ -3,6 +3,7 @@ package decode
 import (
 	"errors"
 	"reflect"
+	"strconv"
 )
 
 var (
@@ -89,9 +90,6 @@ func copyValues(source reflect.Value, destination reflect.Value, tag string, fla
 
 		case reflect.Interface:
 			return copyStructToStruct(srcVal, dstVal, tag, flag)
-
-		default:
-			return ErrorTypeMismatch
 		}
 
 	case reflect.Map:
@@ -104,9 +102,6 @@ func copyValues(source reflect.Value, destination reflect.Value, tag string, fla
 
 		case reflect.Interface:
 			return copyMapToMap(srcVal, dstVal, flag)
-
-		default:
-			return ErrorTypeMismatch
 		}
 
 	case reflect.Slice:
@@ -128,21 +123,97 @@ func copyValues(source reflect.Value, destination reflect.Value, tag string, fla
 			}
 
 			return nil
-
-		default:
-			return ErrorTypeMismatch
 		}
 
 	default:
-		if srcVal.Type().ConvertibleTo(dstVal.Type()) {
+		if srcVal.Kind() == dstVal.Kind() {
 			dstVal.Set(srcVal.Convert(dstVal.Type()))
 			return nil
+		} else if flag&DecoderStrongType == 0 {
+			if converted, err := convertBasicTypes(srcVal, dstVal.Type()); err == nil {
+				dstVal.Set(converted)
+				return nil
+			} else {
+				return ErrorTypeMismatch
+			}
 		} else {
 			return ErrorTypeMismatch
 		}
 	}
 
 	return ErrorTypeMismatch
+}
+
+func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.Value, error) {
+	switch targetType.Kind() {
+	case reflect.Interface:
+		return source, nil
+	case reflect.String:
+		switch source.Kind() {
+		case reflect.String:
+			return reflect.ValueOf(source.String()), nil
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return reflect.ValueOf(strconv.FormatInt(source.Int(), 10)), nil
+		case reflect.Float32, reflect.Float64:
+			return reflect.ValueOf(strconv.FormatFloat(source.Float(), 'f', -1, 64)), nil
+		case reflect.Bool:
+			return reflect.ValueOf(strconv.FormatBool(source.Bool())), nil
+		}
+		return reflect.Value{}, ErrorTypeMismatch
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		switch source.Kind() {
+		case reflect.String:
+			if intValue, err := strconv.ParseInt(source.String(), 10, 64); err == nil {
+				return reflect.ValueOf(intValue).Convert(targetType), nil
+			} else {
+				return reflect.Value{}, err
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return reflect.ValueOf(source.Int()).Convert(targetType), nil
+		case reflect.Float32, reflect.Float64:
+			return reflect.ValueOf(source.Float()).Convert(targetType), nil
+		case reflect.Bool:
+			return reflect.ValueOf(source.Bool()).Convert(targetType), nil
+		}
+		return reflect.Value{}, ErrorTypeMismatch
+
+	case reflect.Float32, reflect.Float64:
+		switch source.Kind() {
+		case reflect.String:
+			if intValue, err := strconv.ParseFloat(source.String(), 64); err == nil {
+				return reflect.ValueOf(intValue).Convert(targetType), nil
+			} else {
+				return reflect.Value{}, err
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return reflect.ValueOf(source.Int()).Convert(targetType), nil
+		case reflect.Float32, reflect.Float64:
+			return reflect.ValueOf(source.Float()).Convert(targetType), nil
+		case reflect.Bool:
+			return reflect.ValueOf(source.Bool()).Convert(targetType), nil
+		}
+		return reflect.Value{}, ErrorTypeMismatch
+
+	case reflect.Bool:
+		switch source.Kind() {
+		case reflect.String:
+			if intValue, err := strconv.ParseBool(source.String()); err == nil {
+				return reflect.ValueOf(intValue).Convert(targetType), nil
+			} else {
+				return reflect.Value{}, err
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return reflect.ValueOf(source.Int()).Convert(targetType), nil
+		case reflect.Float32, reflect.Float64:
+			return reflect.ValueOf(source.Float()).Convert(targetType), nil
+		case reflect.Bool:
+			return reflect.ValueOf(source.Bool()).Convert(targetType), nil
+		}
+		return reflect.Value{}, ErrorTypeMismatch
+	}
+
+	return reflect.Value{}, ErrorTypeMismatch
 }
 
 func copyStructToMap(source reflect.Value, destination reflect.Value, tag string, flag DecoderFlag) error {
@@ -259,8 +330,15 @@ func copyStructToStruct(source reflect.Value, destination reflect.Value, tag str
 			return err
 		}
 
-		if dstField.Type().ConvertibleTo(destination.Field(dstTags[sourceFieldName]).Type()) {
+		if dstField.Kind() == destination.Field(dstTags[sourceFieldName]).Kind() {
 			destination.Field(dstTags[sourceFieldName]).Set(dstField)
+		} else if flag&DecoderStrongType == 0 {
+			if converted, err := convertBasicTypes(dstField, destination.Field(dstTags[sourceFieldName]).Type()); err == nil {
+				destination.Field(dstTags[sourceFieldName]).Set(converted)
+				return nil
+			} else {
+				return ErrorTypeMismatch
+			}
 		} else {
 			return ErrorTypeMismatch
 		}
@@ -322,8 +400,15 @@ func copyMapToStruct(source reflect.Value, destination reflect.Value, tag string
 			return err
 		}
 
-		if dstField.Type().ConvertibleTo(destination.Field(dstTags[sourceFieldName]).Type()) {
+		if dstField.Kind() == destination.Field(dstTags[sourceFieldName]).Kind() {
 			destination.Field(dstTags[sourceFieldName]).Set(dstField)
+		} else if flag&DecoderStrongType == 0 {
+			if converted, err := convertBasicTypes(dstField, destination.Field(dstTags[sourceFieldName]).Type()); err == nil {
+				destination.Field(dstTags[sourceFieldName]).Set(converted)
+				return nil
+			} else {
+				return ErrorTypeMismatch
+			}
 		} else {
 			return ErrorTypeMismatch
 		}
@@ -338,8 +423,15 @@ func copyMapToMap(source reflect.Value, destination reflect.Value, flag DecoderF
 
 	for _, key := range source.MapKeys() {
 		sourceValue := source.MapIndex(key)
-		if sourceValue.Type().ConvertibleTo(destination.Type().Elem()) {
+		if sourceValue.Kind() == destination.Type().Elem().Kind() {
 			destination.SetMapIndex(key, sourceValue.Convert(destination.Type().Elem()))
+		} else if flag&DecoderStrongType == 0 {
+			if converted, err := convertBasicTypes(sourceValue, destination.Type().Elem()); err == nil {
+				destination.SetMapIndex(key, converted)
+				return nil
+			} else {
+				return ErrorTypeMismatch
+			}
 		} else {
 			return ErrorTypeMismatch
 		}
