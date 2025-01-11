@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestDecodeStructMap(t *testing.T) {
@@ -356,6 +357,28 @@ func TestDecodeMapMapTypes(t *testing.T) {
 			"1": 1.0,
 			"2": 2.1,
 			"3": 1.0,
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		if reflect.DeepEqual(testOut, want) {
+			t.Errorf("Decode() = %v, want %v", testOut, want)
+		}
+	})
+
+	t.Run("test map to map convert to time duration", func(t *testing.T) {
+		testIn := map[string]interface{}{
+			"1": "1",
+			"2": 2.1,
+			"3": "5s",
+		}
+		testOut := map[string]time.Duration{}
+		want := map[string]time.Duration{
+			"1": 1,
+			"2": 2,
+			"3": time.Second * 5,
 		}
 
 		if err := Decode(testIn, &testOut, "copy", 0); err != nil {

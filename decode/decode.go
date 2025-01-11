@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 var (
@@ -152,6 +153,7 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 	switch targetType.Kind() {
 	case reflect.Interface:
 		return source, nil
+
 	case reflect.String:
 		switch source.Kind() {
 		case reflect.String:
@@ -166,19 +168,31 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 		return reflect.Value{}, ErrorTypeMismatch
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		switch source.Kind() {
-		case reflect.String:
-			if intValue, err := strconv.ParseInt(source.String(), 10, 64); err == nil {
-				return reflect.ValueOf(intValue).Convert(targetType), nil
-			} else {
-				return reflect.Value{}, err
+		if _, ok := targetType.MethodByName("Nanoseconds"); ok {
+			switch source.Kind() {
+			case reflect.String:
+				d, _ := time.ParseDuration(source.String())
+				return reflect.ValueOf(d).Convert(targetType), nil
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return reflect.ValueOf(source.Int()).Convert(targetType), nil
+			case reflect.Float32, reflect.Float64:
+				return reflect.ValueOf(source.Float()).Convert(targetType), nil
 			}
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return reflect.ValueOf(source.Int()).Convert(targetType), nil
-		case reflect.Float32, reflect.Float64:
-			return reflect.ValueOf(source.Float()).Convert(targetType), nil
-		case reflect.Bool:
-			return reflect.ValueOf(source.Int()).Convert(targetType), nil
+		} else {
+			switch source.Kind() {
+			case reflect.String:
+				if intValue, err := strconv.ParseInt(source.String(), 10, 64); err == nil {
+					return reflect.ValueOf(intValue).Convert(targetType), nil
+				} else {
+					return reflect.Value{}, err
+				}
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return reflect.ValueOf(source.Int()).Convert(targetType), nil
+			case reflect.Float32, reflect.Float64:
+				return reflect.ValueOf(source.Float()).Convert(targetType), nil
+			case reflect.Bool:
+				return reflect.ValueOf(source.Int()).Convert(targetType), nil
+			}
 		}
 		return reflect.Value{}, ErrorTypeMismatch
 
