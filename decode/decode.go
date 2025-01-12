@@ -181,10 +181,16 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 		} else {
 			switch source.Kind() {
 			case reflect.String:
-				if intValue, err := strconv.ParseInt(source.String(), 10, 64); err == nil {
-					return reflect.ValueOf(intValue).Convert(targetType), nil
+				if m, ok := targetType.MethodByName("Parse"); ok && m.Type.NumIn() == 1 && m.Type.In(0).Kind() == reflect.String {
+					newValue := reflect.New(targetType).Elem()
+					newValue.MethodByName("Parse").Call([]reflect.Value{reflect.ValueOf(source.String())})
+					return newValue, nil
 				} else {
-					return reflect.Value{}, err
+					if intValue, err := strconv.ParseInt(source.String(), 10, 64); err == nil {
+						return reflect.ValueOf(intValue).Convert(targetType), nil
+					} else {
+						return reflect.Value{}, err
+					}
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				return reflect.ValueOf(source.Int()).Convert(targetType), nil
@@ -199,10 +205,16 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 	case reflect.Float32, reflect.Float64:
 		switch source.Kind() {
 		case reflect.String:
-			if intValue, err := strconv.ParseFloat(source.String(), 64); err == nil {
-				return reflect.ValueOf(intValue).Convert(targetType), nil
+			if m, ok := targetType.MethodByName("Parse"); ok && m.Type.NumIn() == 1 && m.Type.In(0).Kind() == reflect.String {
+				newValue := reflect.New(targetType).Elem()
+				newValue.MethodByName("Parse").Call([]reflect.Value{reflect.ValueOf(source.String())})
+				return newValue, nil
 			} else {
-				return reflect.Value{}, err
+				if intValue, err := strconv.ParseFloat(source.String(), 64); err == nil {
+					return reflect.ValueOf(intValue).Convert(targetType), nil
+				} else {
+					return reflect.Value{}, err
+				}
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			return reflect.ValueOf(source.Int()).Convert(targetType), nil
