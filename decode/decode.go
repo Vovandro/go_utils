@@ -183,11 +183,11 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 			case reflect.String:
 				newValue := reflect.New(targetType)
 
-				if m := newValue.Elem().MethodByName("Parse"); !m.IsNil() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String &&
+				if m := newValue.Elem().MethodByName("Parse"); m.IsValid() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String &&
 					m.Type().NumOut() == 1 && m.Type().Out(0) == targetType {
 					res := newValue.Elem().MethodByName("Parse").Call([]reflect.Value{reflect.ValueOf(source.String())})
 					return res[0], nil
-				} else if m := newValue.MethodByName("Parse"); !m.IsNil() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String {
+				} else if m := newValue.MethodByName("Parse"); m.IsValid() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String {
 					m.Call([]reflect.Value{reflect.ValueOf(source.String())})
 					return newValue.Elem(), nil
 				} else {
@@ -212,11 +212,11 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 		case reflect.String:
 			newValue := reflect.New(targetType)
 
-			if m := newValue.Elem().MethodByName("Parse"); !m.IsNil() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String &&
+			if m := newValue.Elem().MethodByName("Parse"); m.IsValid() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String &&
 				m.Type().NumOut() == 1 && m.Type().Out(0) == targetType {
 				res := newValue.Elem().MethodByName("Parse").Call([]reflect.Value{reflect.ValueOf(source.String())})
 				return res[0], nil
-			} else if m := newValue.MethodByName("Parse"); !m.IsNil() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String {
+			} else if m := newValue.MethodByName("Parse"); m.IsValid() && m.Type().NumIn() == 1 && m.Type().In(0).Kind() == reflect.String {
 				m.Call([]reflect.Value{reflect.ValueOf(source.String())})
 				return newValue.Elem(), nil
 			} else {
