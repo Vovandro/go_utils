@@ -111,7 +111,26 @@ func copyValues(source reflect.Value, destination reflect.Value, tag string, fla
 			dstVal.Set(reflect.MakeSlice(dstVal.Type(), srcVal.Len(), srcVal.Cap()))
 
 			for i := 0; i < srcVal.Len(); i++ {
-				dstVal.Index(i).Set(reflect.Indirect(srcVal.Index(i)))
+				val := srcVal.Index(i)
+				for val.Kind() == reflect.Interface {
+					val = val.Elem()
+				}
+
+				val = reflect.Indirect(val)
+
+				if dstVal.Type().Elem() == val.Type() {
+					dstVal.Index(i).Set(val.Convert(dstVal.Type().Elem()))
+				} else {
+					if flag&DecoderStrongType != 0 {
+						return ErrorTypeMismatch
+					}
+
+					if converted, err := convertBasicTypes(val, dstVal.Type().Elem()); err == nil {
+						dstVal.Index(i).Set(converted)
+					} else {
+						return err
+					}
+				}
 			}
 
 			return nil

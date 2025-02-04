@@ -2,6 +2,7 @@ package decode
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -210,6 +211,7 @@ func TestDecodeMapStruct(t *testing.T) {
 		Age    int    `copy:"age"`
 		Nested nested `copy:"nested"`
 		NoCopy string
+		Arr    []string `copy:"arr"`
 	}
 
 	testIn := map[string]interface{}{
@@ -278,6 +280,42 @@ func TestDecodeMapStruct(t *testing.T) {
 			testOut.Nested.Custom == testIn["nested"].(map[string]interface{})["custom"] ||
 			testOut.Nested.Field != testIn["nested"].(map[string]interface{})["field"] {
 			t.Errorf("Decode() = %v, want %v", testOut, testIn)
+		}
+	})
+
+	t.Run("test map to struct arr", func(t *testing.T) {
+		testOut := testStruct{}
+		testIn := map[string]interface{}{
+			"arr": interface{}([]interface{}{"1", "2", "3"}),
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		for i := 0; i < len(testOut.Arr); i++ {
+			if testOut.Arr[i] != testIn["arr"].([]interface{})[i] {
+				t.Errorf("Decode() = %v, want %v", testOut, testIn)
+				return
+			}
+		}
+	})
+
+	t.Run("test map to struct arr with convert", func(t *testing.T) {
+		testOut := testStruct{}
+		testIn := map[string]interface{}{
+			"arr": interface{}([]interface{}{1, 2, 3}),
+		}
+
+		if err := Decode(testIn, &testOut, "copy", 0); err != nil {
+			t.Errorf("Decode() error = %v", err)
+		}
+
+		for i := 0; i < len(testOut.Arr); i++ {
+			if testOut.Arr[i] != fmt.Sprintf("%v", testIn["arr"].([]interface{})[i]) {
+				t.Errorf("Decode() = %v, want %v", testOut, testIn)
+				return
+			}
 		}
 	})
 
