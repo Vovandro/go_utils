@@ -2,6 +2,7 @@ package dataUtils
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -85,6 +86,50 @@ func TestSliceToMap(t *testing.T) {
 			// Проверка результата
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("SliceToMap() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestSlicePipeline(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     []int
+		predicate func(*int) string
+		expected  []string
+	}{
+		{
+			name:  "Convert integers to strings",
+			input: []int{1, 2, 3, 4},
+			predicate: func(i *int) string {
+				return strconv.Itoa(*i)
+			},
+			expected: []string{"1", "2", "3", "4"},
+		},
+		{
+			name:  "Double integers and convert to strings",
+			input: []int{5, 10, 15},
+			predicate: func(i *int) string {
+				return strconv.Itoa(*i * 2)
+			},
+			expected: []string{"10", "20", "30"},
+		},
+		{
+			name:  "Empty slice",
+			input: []int{},
+			predicate: func(i *int) string {
+				return strconv.Itoa(*i)
+			},
+			expected: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := SlicePipeline(tt.input, tt.predicate)
+
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SlicePipeline() = %v, expected %v", result, tt.expected)
 			}
 		})
 	}

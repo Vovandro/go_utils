@@ -68,6 +68,82 @@ func TestPipeline(t *testing.T) {
 	}
 }
 
+func TestFilter(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []int
+		fn       func(int) bool
+		expected []int
+	}{
+		{
+			name:  "Filter even numbers",
+			input: []int{1, 2, 3, 4, 5, 6},
+			fn: func(x int) bool {
+				return x%2 == 0
+			},
+			expected: []int{2, 4, 6},
+		},
+		{
+			name:  "Filter numbers greater than 3",
+			input: []int{1, 2, 3, 4, 5},
+			fn: func(x int) bool {
+				return x > 3
+			},
+			expected: []int{4, 5},
+		},
+		{
+			name:  "Filter all elements",
+			input: []int{1, 2, 3},
+			fn: func(x int) bool {
+				return false
+			},
+			expected: []int{},
+		},
+		{
+			name:  "Keep all elements",
+			input: []int{1, 2, 3},
+			fn: func(x int) bool {
+				return true
+			},
+			expected: []int{1, 2, 3},
+		},
+		{
+			name:  "Empty input",
+			input: []int{},
+			fn: func(x int) bool {
+				return x > 0
+			},
+			expected: []int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create input channel
+			in := make(chan int, len(tt.input))
+			for _, val := range tt.input {
+				in <- val
+			}
+			close(in)
+
+			// Apply Filter
+			filter := Filter(tt.fn)
+			outChan := filter(in)
+
+			// Read data from output channel
+			result := make([]int, 0)
+			for val := range outChan {
+				result = append(result, val)
+			}
+
+			// Check result
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("Filter() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestFanIn(t *testing.T) {
 	tests := []struct {
 		name     string

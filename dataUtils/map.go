@@ -56,3 +56,15 @@ func MapOrderedIterator[K Constraints, V any](data map[K]V) func(yield func(K, V
 		}
 	}
 }
+
+func MapToSlice[K comparable, V, T any](data map[K]V, predicate func(K, V) T) []T {
+	values := make([]T, len(data))
+
+	i := 0
+	for k, v := range data {
+		values[i] = predicate(k, v)
+		i++
+	}
+
+	return values
+}

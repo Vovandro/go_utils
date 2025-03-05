@@ -44,3 +44,11 @@ func SliceToMap[T any, K comparable, V any](slice *[]T, predicate func(*T) (K, V
 
 	return result
 }
+
+func SlicePipeline[T, R any](slice []T, predicate func(*T) R) []R {
+	result := make([]R, len(slice))
+	for i := range slice {
+		result[i] = predicate(&slice[i])
+	}
+	return result
+}

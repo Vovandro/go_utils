@@ -2,6 +2,8 @@ package dataUtils
 
 import (
 	"reflect"
+	"sort"
+	"strconv"
 	"testing"
 )
 
@@ -80,6 +82,51 @@ func TestMapOrderedIterator(t *testing.T) {
 
 		if !reflect.DeepEqual(got, []string{"a", "b", "c"}) {
 			t.Errorf("MapOrderedIterator() = %v, want %v", got, []string{"a", "b", "c"})
+		}
+	})
+}
+
+func TestMapToSlice(t *testing.T) {
+	t.Run("test map to slice with string keys", func(t *testing.T) {
+		data := map[string]int{"a": 1, "b": 2, "c": 3}
+		got := MapToSlice(data, func(k string, v int) string {
+			return k + ":" + strconv.Itoa(v)
+		})
+
+		// Sort for consistent comparison
+		sort.Strings(got)
+		expected := []string{"a:1", "b:2", "c:3"}
+		sort.Strings(expected)
+
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("MapToSlice() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("test map to slice with int keys", func(t *testing.T) {
+		data := map[int]string{1: "one", 2: "two", 3: "three"}
+		got := MapToSlice(data, func(k int, v string) int {
+			return k * len(v)
+		})
+
+		// Sort for consistent comparison
+		sort.Ints(got)
+		expected := []int{3, 6, 15} // 1*3, 2*3, 3*5
+		sort.Ints(expected)
+
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("MapToSlice() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("test map to slice with empty map", func(t *testing.T) {
+		data := map[string]int{}
+		got := MapToSlice(data, func(k string, v int) string {
+			return k + ":" + strconv.Itoa(v)
+		})
+
+		if len(got) != 0 {
+			t.Errorf("MapToSlice() = %v, want empty slice", got)
 		}
 	})
 }

@@ -21,6 +21,24 @@ func Pipeline[IN, OUT any](fn func(IN) OUT) func(<-chan IN) <-chan OUT {
 	}
 }
 
+// Filter filtered channel values by applying a function to each input value.
+func Filter[IN any](fn func(IN) bool) func(<-chan IN) <-chan IN {
+	return func(in <-chan IN) <-chan IN {
+		out := make(chan IN)
+
+		go func() {
+			for val := range in {
+				if fn(val) {
+					out <- val
+				}
+			}
+			close(out)
+		}()
+
+		return out
+	}
+}
+
 // Split splits a channel of input values into two channels of output values by applying a function to each input value.
 func Split[IN, OUT1, OUT2 any](in <-chan IN, fn func(IN) (OUT1, OUT2)) (<-chan OUT1, <-chan OUT2) {
 	out1 := make(chan OUT1)

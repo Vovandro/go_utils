@@ -34,11 +34,13 @@ This package provides a set of utilities for working with channels and concurren
 ### Features
 
 - **Pipeline**: Apply a transformation function to a stream of input values.
+- **Filter**: Apply a filter function to a stream of input values.
 - **Split**: Split a stream of input values into two output streams based on a function.
 - **FanIn**: Merge multiple input streams into a single output stream.
 - **FanOut**: Distribute values from an input stream to multiple output streams.
 - **Batch**: Group input values into fixed-size batches.
 - **Parallel**: Process input values concurrently using a worker pool.
+- **Future**: Execute a function asynchronously and retrieve its result later, allowing non-blocking operations.
 
 ---
 
@@ -66,7 +68,29 @@ for val := range output {
 
 ---
 
-#### 2. Split
+#### 2. Filter
+
+Filter a stream of input values using a provided function.
+
+```go
+input := make(chan int)
+output := concurrency.Filter(func(i int) bool { return i % 2 == 0 })(input)
+
+go func() {
+    for i := 1; i <= 5; i++ {
+        input <- i
+    }
+    close(input)
+}()
+
+for val := range output {
+    fmt.Println(val) // Output: 2, 4
+}
+```
+
+---
+
+#### 3. Split
 
 Splits a stream of input values into two streams based on a transformation function.
 
@@ -94,7 +118,7 @@ for val := range out2 {
 
 ---
 
-#### 3. FanIn
+#### 4. FanIn
 
 Merges multiple input streams into a single output stream.
 
@@ -122,7 +146,7 @@ for val := range output {
 
 ---
 
-#### 4. FanOut
+#### 5. FanOut
 
 Distributes values from a single input stream to multiple output streams.
 
@@ -148,7 +172,7 @@ for i, out := range outputs {
 
 ---
 
-#### 5. Batch
+#### 6. Batch
 
 Groups values from a stream into fixed-size batches.
 
@@ -170,7 +194,7 @@ for batch := range output {
 
 ---
 
-#### 6. Parallel
+#### 7. Parallel
 
 Processes values from a stream concurrently using a worker pool.
 
@@ -189,6 +213,24 @@ for val := range output {
     fmt.Println(val) // Output: 1, 4, 9, 16, 25 (order may vary)
 }
 ```
+
+---
+
+#### 8. Future
+
+Execute a function asynchronously and retrieve its result later, allowing non-blocking operations.
+
+```go
+future := concurrency.NewFuture(func() (int, error) {
+    return 42, nil
+})
+
+// After some time
+
+result, err := future.Get()
+fmt.Println(result, err) // Output: 42 <nil>
+```
+
 
 </details>
 
@@ -210,11 +252,13 @@ The dataUtils package provides a collection of utility functions for working wit
 - **Check for Keys**: Verify if a key exists in a map.
 - **Check for Values**: Verify if a value exists in a map.
 - **Ordered Iteration**: Iterate over a map in sorted key order.
+- **Map to Slice**: Convert a map to a slice.
 - **Generic Sorting**: Sort slices in ascending or descending order.
 - **Deduplication**: Remove duplicate elements from a slice.
 - **Filtering**: Extract elements that match a given condition.
 - **Iteration**: Apply a function to each element in a slice.
 - **Conversion**: Transform a slice into a map.
+- **Pipeline**: Apply a transformation function to a slice.
 
 ---
 
@@ -286,7 +330,19 @@ iterator(func(k int, v string) bool {
 
 ---
 
-#### 6. SliceOrder
+#### 6. MapToSlice
+
+Converts a map to a slice using a transformation function.
+
+```go
+data := map[string]int{"a": 1, "b": 2, "c": 3}
+slice := dataUtils.MapToSlice(data, func(k string, v int) string {
+    return fmt.Sprintf("%s: %d", k, v)
+})
+fmt.Println(slice) // Output: ["a: 1", "b: 2", "c: 3"]
+```
+
+#### 7. SliceOrder
 
 Sorts a slice in ascending or descending order.
 
@@ -312,7 +368,7 @@ fmt.Println(strings) // Output: [cherry banana apple]
 
 ---
 
-#### 7. SliceDistinct
+#### 8. SliceDistinct
 
 Removes duplicate elements from a slice and returns a new slice with unique values.
 
@@ -324,7 +380,7 @@ fmt.Println(uniqueNumbers) // Output: [1 2 3 4]
 
 ---
 
-#### 8. SliceFilter
+#### 9. SliceFilter
 
 Filters elements in a slice based on a predicate function.
 
@@ -338,7 +394,7 @@ fmt.Println(evenNumbers) // Output: [2 4]
 
 ---
 
-#### 9. SliceForeach
+#### 10. SliceForeach
 
 Applies a function to each element in a slice.
 
@@ -352,7 +408,7 @@ fmt.Println(numbers) // Output: [2 4 6]
 
 ---
 
-#### 10. SliceToMap
+#### 11. SliceToMap
 
 Converts a slice to a map using a transformation function.
 
@@ -362,6 +418,20 @@ nameLengths := dataUtils.SliceToMap(&people, func(name *string) (string, int) {
     return *name, len(*name)
 })
 fmt.Println(nameLengths) // Output: map[Alice:5 Bob:3 Charlie:7]
+```
+
+---
+
+#### 12. SlicePipeline
+
+Applies a transformation function to a slice and returns a new slice.
+
+```go
+numbers := []int{1, 2, 3}
+squaredNumbers := dataUtils.SlicePipeline(numbers, func(n *int) int {
+    return *n * *n
+})
+fmt.Println(squaredNumbers) // Output: [1 4 9]
 ```
 
 </details>
