@@ -130,3 +130,16 @@ func TestMapToSlice(t *testing.T) {
 		}
 	})
 }
+
+func TestMapPipeline(t *testing.T) {
+	t.Run("test map pipeline", func(t *testing.T) {
+		data := map[string]int{"a": 1, "b": 2, "c": 3}
+		got := MapPipeline(data, func(k string, v int) string {
+			return k + ":" + strconv.Itoa(v)
+		})
+
+		if !reflect.DeepEqual(got, map[string]string{"a": "a:1", "b": "b:2", "c": "c:3"}) {
+			t.Errorf("MapPipeline() = %v, want %v", got, map[string]string{"a": "a:1", "b": "b:2", "c": "c:3"})
+		}
+	})
+}

@@ -68,3 +68,12 @@ func MapToSlice[K comparable, V, T any](data map[K]V, predicate func(K, V) T) []
 
 	return values
 }
+
+func MapPipeline[K comparable, V, T any](data map[K]V, predicate func(K, V) T) map[K]T {
+	result := make(map[K]T, len(data))
+	for k, v := range data {
+		result[k] = predicate(k, v)
+	}
+
+	return result
+}

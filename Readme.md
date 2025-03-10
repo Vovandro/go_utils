@@ -1,10 +1,8 @@
-
 [![pipeline status](https://gitlab.com/devpro_studio/go_utils/badges/master/pipeline.svg)](https://gitlab.com/devpro_studio/go_utils/-/commits/master)
 [![coverage report](https://gitlab.com/devpro_studio/go_utils/badges/master/coverage.svg)](https://gitlab.com/devpro_studio/go_utils/-/commits/master)
 [![Latest Release](https://gitlab.com/devpro_studio/go_utils/-/badges/release.svg)](https://gitlab.com/devpro_studio/go_utils/-/releases)
 
 # Golang helper utils
-
 
 ## Installation
 
@@ -231,7 +229,6 @@ result, err := future.Get()
 fmt.Println(result, err) // Output: 42 <nil>
 ```
 
-
 </details>
 
 ---
@@ -253,6 +250,7 @@ The dataUtils package provides a collection of utility functions for working wit
 - **Check for Values**: Verify if a value exists in a map.
 - **Ordered Iteration**: Iterate over a map in sorted key order.
 - **Map to Slice**: Convert a map to a slice.
+- **Map Pipeline**: Apply a transformation function to a map.
 - **Generic Sorting**: Sort slices in ascending or descending order.
 - **Deduplication**: Remove duplicate elements from a slice.
 - **Filtering**: Extract elements that match a given condition.
@@ -342,7 +340,23 @@ slice := dataUtils.MapToSlice(data, func(k string, v int) string {
 fmt.Println(slice) // Output: ["a: 1", "b: 2", "c: 3"]
 ```
 
-#### 7. SliceOrder
+---
+
+#### 7. MapPipeline
+
+Applies a transformation function to a map and returns a new map.
+
+```go
+data := map[string]int{"a": 1, "b": 2, "c": 3}
+result := dataUtils.MapPipeline(data, func(k string, v int) string {
+    return fmt.Sprintf("%s: %d", k, v)
+})
+fmt.Println(result) // Output: map[a: "a: 1", b: "b: 2", c: "c: 3"]
+```
+
+---
+
+#### 8. SliceOrder
 
 Sorts a slice in ascending or descending order.
 
@@ -368,7 +382,7 @@ fmt.Println(strings) // Output: [cherry banana apple]
 
 ---
 
-#### 8. SliceDistinct
+#### 9. SliceDistinct
 
 Removes duplicate elements from a slice and returns a new slice with unique values.
 
@@ -380,7 +394,7 @@ fmt.Println(uniqueNumbers) // Output: [1 2 3 4]
 
 ---
 
-#### 9. SliceFilter
+#### 10. SliceFilter
 
 Filters elements in a slice based on a predicate function.
 
@@ -394,7 +408,7 @@ fmt.Println(evenNumbers) // Output: [2 4]
 
 ---
 
-#### 10. SliceForeach
+#### 11. SliceForeach
 
 Applies a function to each element in a slice.
 
@@ -408,7 +422,7 @@ fmt.Println(numbers) // Output: [2 4 6]
 
 ---
 
-#### 11. SliceToMap
+#### 12. SliceToMap
 
 Converts a slice to a map using a transformation function.
 
@@ -422,7 +436,7 @@ fmt.Println(nameLengths) // Output: map[Alice:5 Bob:3 Charlie:7]
 
 ---
 
-#### 12. SlicePipeline
+#### 13. SlicePipeline
 
 Applies a transformation function to a slice and returns a new slice.
 
@@ -450,17 +464,21 @@ The decode package provides a flexible utility for copying and transforming data
 ### Key Features
 
 #### Core Functionality
+
 - **Data Transformation**: Copy and transform data between structs, maps, and slices.
 - **Field Mapping**: Map fields between structs and maps using custom tags.
 - **Nested Data Handling**: Recursively process nested data structures.
 
 #### Error Handling
+
 - **Type Mismatch**: Returns an error if source and destination types are incompatible.
 - **Destination Validation**: Ensures the destination is a writable pointer.
 - **Field Presence**: Optionally enforce strict checks for field presence in the destination.
 
 #### Configuration Flags
+
 The behavior of the `Decode` function can be customized using the following flags:
+
 - **`DecoderStrongFoundDst`**: Enforces strict checks for destination field presence.
 - **`DecoderStrongType`**: Ensures type safety and allows struct-to-map conversion.
 - **`DecoderUnwrapStructToMap`**: Unwraps nested structs into maps for flexible data representation.
@@ -470,6 +488,7 @@ The behavior of the `Decode` function can be customized using the following flag
 ### Usage Example
 
 #### Basic Struct-to-Struct Mapping
+
 ```go
 type Source struct {
     Name  string `json:"name"`
