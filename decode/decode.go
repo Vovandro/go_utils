@@ -221,7 +221,7 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 			case reflect.Float32, reflect.Float64:
 				return reflect.ValueOf(source.Float()).Convert(targetType), nil
 			case reflect.Bool:
-				return reflect.ValueOf(source.Int()).Convert(targetType), nil
+				return reflect.ValueOf(source.Bool()).Convert(targetType), nil
 			}
 		}
 		return reflect.Value{}, ErrorTypeMismatch
@@ -250,7 +250,7 @@ func convertBasicTypes(source reflect.Value, targetType reflect.Type) (reflect.V
 		case reflect.Float32, reflect.Float64:
 			return reflect.ValueOf(source.Float()).Convert(targetType), nil
 		case reflect.Bool:
-			return reflect.ValueOf(source.Int()).Convert(targetType), nil
+			return reflect.ValueOf(source.Bool()).Convert(targetType), nil
 		}
 		return reflect.Value{}, ErrorTypeMismatch
 
